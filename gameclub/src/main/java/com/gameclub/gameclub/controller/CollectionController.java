@@ -19,10 +19,7 @@ public class CollectionController {
 
     @PostMapping("/save")
     public CollectionsDaily saveCollection(@RequestBody CollectionDto dto) {
-        CollectionsDaily collection = new CollectionsDaily();
-        collection.setAmount(dto.getAmount());
-        collection.setDate(dto.getDate());
-        return collectionsService.create(collection);
+        return collectionsService.create(dto);
     }
 
     @GetMapping("/all")
@@ -33,5 +30,10 @@ public class CollectionController {
     @GetMapping("/{id}")
     public CollectionsDaily getCollectionById(@PathVariable String id) {
         return collectionsService.findById(id);
+    }
+
+    @PutMapping("/{id}")
+    public CollectionsDaily updateCollection(@PathVariable String id, @RequestBody CollectionDto dto) {
+        return collectionsService.update(id, dto);
     }
 }

@@ -18,12 +18,8 @@ public class GameController {
     private GameService gameService;
 
     @PostMapping("/save")
-    public Game saveGame(@RequestBody GameDto gameDto) {
-        Game game = new Game();
-        game.setName(gameDto.getName());
-        game.setDescription(gameDto.getDescription());
-        game.setPrice(gameDto.getPrice());
-        return gameService.create(game);
+    public Game saveGame(@RequestBody GameDto dto) {
+        return gameService.create(dto);
     }
 
     @GetMapping("/all")
@@ -34,5 +30,10 @@ public class GameController {
     @GetMapping("/{id}")
     public Game getGameById(@PathVariable String id) {
         return gameService.findById(id);
+    }
+
+    @PutMapping("/{id}")
+    public Game updateGame(@PathVariable String id, @RequestBody GameDto dto) {
+        return gameService.update(id, dto);
     }
 }

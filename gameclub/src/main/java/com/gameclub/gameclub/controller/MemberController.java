@@ -18,12 +18,8 @@ public class MemberController {
     private MemberService memberService;
 
     @PostMapping("/save")
-    public Member saveMember(@RequestBody MemberDto memberDto) {
-        Member member = new Member();
-        member.setName(memberDto.getName());
-        member.setPhNo(memberDto.getPhoneNumber());
-        member.setBalance(memberDto.getBalance());
-        return memberService.create(member);
+    public Member saveMember(@RequestBody MemberDto dto) {
+        return memberService.create(dto);
     }
 
     @GetMapping("/all")
@@ -34,5 +30,10 @@ public class MemberController {
     @GetMapping("/{id}")
     public Member getMemberById(@PathVariable String id) {
         return memberService.findById(id);
+    }
+
+    @PutMapping("/{id}")
+    public Member updateMember(@PathVariable String id, @RequestBody MemberDto dto) {
+        return memberService.update(id, dto);
     }
 }

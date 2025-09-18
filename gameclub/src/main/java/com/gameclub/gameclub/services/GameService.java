@@ -1,62 +1,44 @@
 package com.gameclub.gameclub.services;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.gameclub.gameclub.exceptions.IdNotPresentException;
+import com.gameclub.gameclub.dto.GameDto;
 import com.gameclub.gameclub.model.Game;
 import com.gameclub.gameclub.repository.GameRepository;
+import com.gameclub.gameclub.exceptions.IdNotPresentException;
 
 @Service
 public class GameService {
-    
+
     @Autowired
-    private GameRepository repo;
+    private GameRepository gameRepo;
 
-    public Game create(Game game){
+    public Game create(GameDto dto) {
+        Game game = new Game();
+        game.setName(dto.getName());
+        game.setDescription(dto.getDescription());
+        game.setPrice(dto.getPrice());
         game.setId(null);
-        Game savedGame = repo.save(game);
-        return savedGame;
+        return gameRepo.save(game);
     }
 
-    public List<Game> findAll(){
-        List<Game> games = repo.findAll();
-        return games;
+    public List<Game> findAll() {
+        return gameRepo.findAll();
     }
 
-    public Game findById(String id) throws IdNotPresentException {
-        Optional<Game> optionalGame = repo.findById(id);
-        if(optionalGame.isEmpty()){
-            throw new IdNotPresentException("Game not found: " + id);
-        }
-        return optionalGame.get();
+    public Game findById(String id) {
+        return gameRepo.findById(id)
+                .orElseThrow(() -> new IdNotPresentException("Game not found: " + id));
     }
 
-    public Game update(String id, Game game) throws IdNotPresentException {
-        Optional<Game> optionalGame = repo.findById(id);
-        if(optionalGame.isEmpty()){
-            throw new IdNotPresentException("Game not found: " + id);
-        }
-        Game oldGame = optionalGame.get();
-        oldGame.setName(game.getName());
-        oldGame.setDescription(game.getDescription());
-        oldGame.setPrice(game.getPrice());
-
-        Game updatedGame = repo.save(oldGame);
-        return updatedGame;
-    }
-
-    public boolean delete(String id) throws IdNotPresentException {
-        Optional<Game> optionalGame = repo.findById(id);
-        if(optionalGame.isEmpty()) {
-            throw new IdNotPresentException("Product not found" + id);
-        }
-        
-        repo.deleteById(id);
-        return true;
+    public Game update(String id, GameDto dto) {
+        Game existing = findById(id);
+        existing.setName(dto.getName());
+        existing.setDescription(dto.getDescription());
+        existing.setPrice(dto.getPrice());
+        return gameRepo.save(existing);
     }
 }
-

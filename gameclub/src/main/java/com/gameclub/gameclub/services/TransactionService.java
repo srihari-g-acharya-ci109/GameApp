@@ -1,26 +1,26 @@
 package com.gameclub.gameclub.services;
 
 import java.util.List;
-import java.util.Optional;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.gameclub.gameclub.exceptions.IdNotPresentException;
-import com.gameclub.gameclub.exceptions.InsufficientBalanceException;
+import com.gameclub.gameclub.dto.TransactionDto;
+import com.gameclub.gameclub.model.TransactionRecord;
 import com.gameclub.gameclub.model.Member;
 import com.gameclub.gameclub.model.Game;
-import com.gameclub.gameclub.model.TransactionRecord;
+import com.gameclub.gameclub.repository.TransactionRepository;
 import com.gameclub.gameclub.repository.MemberRepository;
 import com.gameclub.gameclub.repository.GameRepository;
-import com.gameclub.gameclub.repository.TransactionRepository;
+import com.gameclub.gameclub.exceptions.IdNotPresentException;
+import com.gameclub.gameclub.exceptions.InsufficientBalanceException;
 
 @Service
 public class TransactionService {
 
     @Autowired
-    private TransactionRepository repo;
+    private TransactionRepository transactionRepo;
 
     @Autowired
     private MemberRepository memberRepo;
@@ -28,19 +28,11 @@ public class TransactionService {
     @Autowired
     private GameRepository gameRepo;
 
-    public TransactionRecord create(TransactionRecord transaction) {
-        Optional<Member> optionalMember = memberRepo.findById(transaction.getMemberId());
-        if (optionalMember.isEmpty()) {
-            throw new IdNotPresentException("Member not found: " + transaction.getMemberId());
-        }
-
-        Optional<Game> optionalGame = gameRepo.findById(transaction.getGameId());
-        if (optionalGame.isEmpty()) {
-            throw new IdNotPresentException("Game not found: " + transaction.getGameId());
-        }
-
-        Member member = optionalMember.get();
-        Game game = optionalGame.get();
+    public TransactionRecord create(TransactionDto dto) {
+        Member member = memberRepo.findById(dto.getMemberId())
+                .orElseThrow(() -> new IdNotPresentException("Member not found: " + dto.getMemberId()));
+        Game game = gameRepo.findById(dto.getGameId())
+                .orElseThrow(() -> new IdNotPresentException("Game not found: " + dto.getGameId()));
 
         if (member.getBalance() < game.getPrice()) {
             throw new InsufficientBalanceException("Not enough balance to buy game");
@@ -49,43 +41,29 @@ public class TransactionService {
         member.setBalance(member.getBalance() - game.getPrice());
         memberRepo.save(member);
 
-        transaction.setId(null);
+        TransactionRecord transaction = new TransactionRecord();
+        transaction.setGameId(dto.getGameId());
+        transaction.setMemberId(dto.getMemberId());
         transaction.setPrice(game.getPrice());
         transaction.setDateTime(LocalDateTime.now());
-        return repo.save(transaction);
+        return transactionRepo.save(transaction);
     }
 
     public List<TransactionRecord> findAll() {
-        return repo.findAll();
+        return transactionRepo.findAll();
     }
 
     public TransactionRecord findById(String id) {
-        Optional<TransactionRecord> optional = repo.findById(id);
-        if (optional.isEmpty()) {
-            throw new IdNotPresentException("Transaction not found: " + id);
-        }
-        return optional.get();
+        return transactionRepo.findById(id)
+                .orElseThrow(() -> new IdNotPresentException("Transaction not found: " + id));
     }
 
-    public TransactionRecord update(String id, TransactionRecord transaction) {
-        Optional<TransactionRecord> optional = repo.findById(id);
-        if (optional.isEmpty()) {
-            throw new IdNotPresentException("Transaction not found: " + id);
-        }
-        TransactionRecord old = optional.get();
-        old.setGameId(transaction.getGameId());
-        old.setMemberId(transaction.getMemberId());
-        old.setPrice(transaction.getPrice());
-        old.setDateTime(transaction.getDateTime());
-        return repo.save(old);
-    }
-
-    public boolean delete(String id) {
-        Optional<TransactionRecord> optional = repo.findById(id);
-        if (optional.isEmpty()) {
-            throw new IdNotPresentException("Transaction not found: " + id);
-        }
-        repo.deleteById(id);
-        return true;
+    public TransactionRecord update(String id, TransactionDto dto) {
+        TransactionRecord existing = findById(id);
+        existing.setGameId(dto.getGameId());
+        existing.setMemberId(dto.getMemberId());
+        existing.setPrice(dto.getPrice());
+        existing.setDateTime(dto.getDateTime());
+        return transactionRepo.save(existing);
     }
 }

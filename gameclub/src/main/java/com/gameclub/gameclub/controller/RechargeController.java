@@ -19,10 +19,7 @@ public class RechargeController {
 
     @PostMapping("/save")
     public Recharge saveRecharge(@RequestBody RechargeDto dto) {
-        Recharge recharge = new Recharge();
-        recharge.setMemberId(dto.getMemberId());
-        recharge.setAmount(dto.getAmount());
-        return rechargeService.create(recharge);
+        return rechargeService.create(dto);
     }
 
     @GetMapping("/all")
@@ -33,5 +30,10 @@ public class RechargeController {
     @GetMapping("/{id}")
     public Recharge getRechargeById(@PathVariable String id) {
         return rechargeService.findById(id);
+    }
+
+    @PutMapping("/{id}")
+    public Recharge updateRecharge(@PathVariable String id, @RequestBody RechargeDto dto) {
+        return rechargeService.update(id, dto);
     }
 }

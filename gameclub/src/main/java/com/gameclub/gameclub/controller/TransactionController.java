@@ -19,10 +19,7 @@ public class TransactionController {
 
     @PostMapping("/save")
     public TransactionRecord saveTransaction(@RequestBody TransactionDto dto) {
-        TransactionRecord transaction = new TransactionRecord();
-        transaction.setGameId(dto.getGameId());
-        transaction.setMemberId(dto.getMemberId());
-        return transactionService.create(transaction);
+        return transactionService.create(dto);
     }
 
     @GetMapping("/all")
@@ -33,5 +30,10 @@ public class TransactionController {
     @GetMapping("/{id}")
     public TransactionRecord getTransactionById(@PathVariable String id) {
         return transactionService.findById(id);
+    }
+
+    @PutMapping("/{id}")
+    public TransactionRecord updateTransaction(@PathVariable String id, @RequestBody TransactionDto dto) {
+        return transactionService.update(id, dto);
     }
 }
